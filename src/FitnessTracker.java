@@ -1,158 +1,120 @@
 
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class FitnessTracker {
 
     private String name;
-    private int currrentTime;
-    private  int heartbeat;
+    private Calendar currentTime;
+    private int heartbeat;
     private int activityLevel;
     private int activityTrend;
     private int energyLevel;
-    private String info;
 
-
-public FitnessTracker(String name,int currrentTime, int heartbeat, int  activityLevel, int activityTrend, int energyLevel, String info){
-
-    this.name = name;
-    this.currrentTime = currrentTime;
-    this.heartbeat = heartbeat;
-    this.activityLevel = activityLevel;
-    this.activityTrend = activityTrend;
-    this.energyLevel = energyLevel;
-    this.info=info;
-
-}
-    public String getInfo(){
-        System.out.println("Tracker" + name + ":" + currrentTime + "h" + heartbeat + activityLevel + "%" + energyLevel + "Watt");
-        return info;
+    // The document mentioned, that you would need an empty constructor
+    public FitnessTracker() {
     }
 
+    public String getInfo() {
+        return "Tracker " + name + ": It is " + new SimpleDateFormat("HH:mm").format(getCurrentTime().getTime()) + "h, current heartbeat is " + heartbeat + ", activity level is " + activityLevel + "%\n" +
+                "Current energy level is " + energyLevel + " Watt." + getAdditionalInfo();
+    }
 
+    public String getAdditionalInfo() {
+        String additionalInfo = "";
+
+        if (isNightTime(getCurrentHour())) {
+            additionalInfo = " Note: currently night time!";
+        } else if (energyLevel > 150) {
+            additionalInfo = " Note: currently high energy level!";
+        } else if (energyLevel < 50) {
+            additionalInfo = " Note: currently low energy level!";
+        }
+
+        return additionalInfo;
+    }
 
     public String getName() {
         return name;
     }
 
-        public void setName(String aName){
-            if (aName != "") {
-                this.name = aName;
-            }
-            else {
-                this.name = name;
-            }
+    // Read closely - we need to trim the String so that leading and trailing whitespace is removed
+    public void setName(String aName) {
+        if (!aName.trim().equals("")) {
+            this.name = aName.trim();
         }
-
-    public int getCurrrentTime() {
-        return currrentTime;
     }
 
-        public void setCurrrentTime(int currrentTime) {
+    public Calendar getCurrentTime() {
+        currentTime = Calendar.getInstance();
+        return currentTime;
+    }
 
-            LocalTime rightNow = LocalTime.now(ZoneId.of("Europe/Berlin"));
-            currrentTime = rightNow.getHour() + rightNow.getMinute();
-            this.currrentTime = currrentTime;
-        }
+    public int getCurrentHour() {
+        return currentTime.get(Calendar.HOUR_OF_DAY);
+    }
 
-        public boolean isNightTime(boolean night,int time ){
+    public boolean isNightTime(int time) {
+        if (time <= 6 || time >= 22) {
+            System.out.println(" Note : Currently Night Time !");
+            return true;
 
-    if ((time > 0 && time < 6) || time > 22 && time < 24){
-        System.out.println(" Note : Currently Night Time !");
-        return night;
-
-            }
-    else return false;
-        }
+        } else return false;
+    }
 
     public int getHeartbeat() {
         return heartbeat;
     }
 
-    public void setHeartbeat(int heartbeat) {
-        if ((heartbeat < 0) || (heartbeat > 250)) {
-            System.out.println("value is out of range");
+    public void setHeartbeat() {
+        int currentHour = getCurrentHour();
+        if (isNightTime(currentHour)) {
+            heartbeat = (int) (45 + (20 * Math.random() - 10));
+        } else {
+            heartbeat = (int) (50 + activityLevel * 1.52);
         }
-
-        else if (isNightTime(true,currrentTime)) {
-        heartbeat = 45;
-        heartbeat += (int) (20 * Math.random() - 11);
-    }
-    else {
-        heartbeat = (int) (50 + activityLevel * 1.52);
-    }
-        this.heartbeat = heartbeat;
-    }
-
-     {
     }
 
     public int getActivityLevel() {
         return activityLevel;
     }
 
-    public void setActivityLevel(int activityLevel) {
-        if ((activityLevel < 0) || (activityLevel > 100)) {
-            System.out.println("value is out of range");
-        }
-
-        else if (activityLevel < activityTrend){
+    public void setActivityLevel() {
+        if (activityLevel < activityTrend) {
             activityLevel += 5;
-        }
-
-        else if (activityLevel > activityTrend){
+        } else if (activityLevel > activityTrend) {
             activityLevel -= 4;
+        // This if statement can be removed and you can leave a simple else here
+        // If neither of both statements above are true, both values must be identical
+        } else if (activityLevel == activityTrend) {
+            setActivityTrend();
         }
-
-        else if (activityLevel == activityTrend){
-            setActivityTrend(activityLevel);
-        }
-
-        this.activityLevel = activityLevel;
     }
 
     public int getActivityTrend() {
         return activityTrend;
     }
-    public void setActivityTrend(int activityTrend) {
-        if ((activityTrend < 0) || (activityTrend > 100)) {
-            System.out.println("value is out of range");
-        }
-        else {
-            activityTrend += (int) (20 * Math.random() - 10);
 
-            this.activityTrend = activityTrend;
-        }
+    // Watch closely - although this method is a 'set', it doesn't mean you must provide a parameter
+    // The document states, that the function doesn't have a parameter
+    public void setActivityTrend() {
+        activityTrend += (int) (20 * Math.random() - 10);
     }
 
     public int getEnergyLevel() {
         return energyLevel;
     }
-    public void setEnergyLevel(int energyLevel) {
-        if ((energyLevel < 0) || (energyLevel > 1000)) {
-            System.out.println("value is out of range");
-        }
-        else {
 
-            energyLevel = (int) (heartbeat * activityLevel / 32.1);
-
-
-            this.energyLevel = energyLevel;
-        }
+    // Same here
+    public void setEnergyLevel() {
+        energyLevel = (int) (heartbeat * activityLevel / 32.1);
     }
 
-
-
-    public void goOn(){
-    setActivityLevel(activityLevel);
-    setHeartbeat(heartbeat);
-    setEnergyLevel(energyLevel);
+    public void goOn() {
+        setActivityLevel();
+        setHeartbeat();
+        setEnergyLevel();
     }
-
-
-
-
-
 }
 
 
